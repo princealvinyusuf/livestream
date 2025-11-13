@@ -1,4 +1,5 @@
 <script setup>
+import { usePreferences } from '@/Composables/usePreferences';
 import { computed, ref } from 'vue';
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 import Dropdown from '@/Components/Dropdown.vue';
@@ -11,16 +12,30 @@ const showingNavigationDropdown = ref(false);
 const page = usePage();
 const user = computed(() => page.props.auth?.user ?? null);
 const roles = computed(() => user.value?.roles ?? []);
-const isStreamer = computed(() => user.value?.role === 'streamer' || roles.value.includes('streamer'));
-const isEmployer = computed(() => user.value?.role === 'employer' || roles.value.includes('employer'));
+const isStreamer = computed(
+    () => user.value?.role === 'streamer' || roles.value.includes('streamer'),
+);
+const isEmployer = computed(
+    () => user.value?.role === 'employer' || roles.value.includes('employer'),
+);
+
+const {
+    isDark,
+    toggleTheme,
+    locale,
+    toggleLocale,
+    isIndonesian,
+} = usePreferences();
+
+const themeLabel = computed(() => (isDark.value ? '🌙' : '☀️'));
+const languageLabel = computed(() => (locale.value === 'id' ? 'ID' : 'EN'));
 </script>
 
 <template>
-    <div>
-        <div class="min-h-screen bg-gray-100">
-            <nav
-                class="border-b border-gray-100 bg-white"
-            >
+    <div class="min-h-screen bg-gray-50 text-slate-900 transition-colors duration-200 dark:bg-slate-950 dark:text-slate-100">
+        <nav
+            class="border-b border-slate-200/80 bg-white shadow-sm transition-colors duration-200 dark:border-slate-800 dark:bg-slate-900 dark:shadow-none"
+        >
                 <!-- Primary Navigation Menu -->
                 <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div class="flex h-16 justify-between">
@@ -29,7 +44,7 @@ const isEmployer = computed(() => user.value?.role === 'employer' || roles.value
                             <div class="flex shrink-0 items-center">
                                 <Link :href="route('dashboard')">
                                     <ApplicationLogo
-                                        class="block h-9 w-auto fill-current text-gray-800"
+                                    class="block h-9 w-auto fill-current text-indigo-600 dark:text-white"
                                     />
                                 </Link>
                             </div>
@@ -42,7 +57,7 @@ const isEmployer = computed(() => user.value?.role === 'employer' || roles.value
                                     :href="route('dashboard')"
                                     :active="route().current('dashboard')"
                                 >
-                                    Dashboard
+                                    {{ isIndonesian ? 'Dashboard' : 'Dashboard' }}
                                 </NavLink>
                                 <NavLink
                                     :href="route('jobs.index')"
@@ -51,19 +66,42 @@ const isEmployer = computed(() => user.value?.role === 'employer' || roles.value
                                         route().current('jobs.show')
                                     "
                                 >
-                                    Daftar Job
+                                    {{ isIndonesian ? 'Daftar Job' : 'Jobs' }}
                                 </NavLink>
                                 <NavLink
                                     v-if="isEmployer"
                                     :href="route('jobs.create')"
                                     :active="route().current('jobs.create')"
                                 >
-                                    Post Job
+                                    {{ isIndonesian ? 'Post Job' : 'Post a Job' }}
                                 </NavLink>
                             </div>
                         </div>
 
-                        <div class="hidden sm:ms-6 sm:flex sm:items-center">
+                        <div class="hidden items-center gap-3 sm:ms-6 sm:flex">
+                            <button
+                                type="button"
+                                class="inline-flex items-center rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:border-indigo-400 hover:text-indigo-600 dark:border-white/20 dark:text-slate-200 dark:hover:border-indigo-300 dark:hover:text-indigo-200"
+                                @click="toggleLocale"
+                            >
+                                {{ languageLabel }}
+                            </button>
+                            <button
+                                type="button"
+                                class="inline-flex items-center rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:border-indigo-400 hover:text-indigo-600 dark:border-white/20 dark:text-slate-200 dark:hover:border-indigo-300 dark:hover:text-indigo-200"
+                                @click="toggleTheme"
+                                :title="
+                                    isDark
+                                        ? isIndonesian
+                                            ? 'Ubah ke mode terang'
+                                            : 'Switch to light mode'
+                                        : isIndonesian
+                                        ? 'Ubah ke mode gelap'
+                                        : 'Switch to dark mode'
+                                "
+                            >
+                                {{ themeLabel }}
+                            </button>
                             <!-- Settings Dropdown -->
                             <div class="relative ms-3">
                                 <Dropdown align="right" width="48">
@@ -71,9 +109,9 @@ const isEmployer = computed(() => user.value?.role === 'employer' || roles.value
                                         <span class="inline-flex rounded-md">
                                             <button
                                                 type="button"
-                                                class="inline-flex items-center rounded-md border border-transparent bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-500 transition duration-150 ease-in-out hover:text-gray-700 focus:outline-none"
+                                                class="inline-flex items-center rounded-md border border-transparent bg-white px-3 py-2 text-sm font-medium leading-4 text-slate-600 transition duration-150 ease-in-out hover:text-indigo-600 focus:outline-none dark:bg-slate-800 dark:text-slate-200 dark:hover:text-indigo-200"
                                             >
-                                                {{ $page.props.auth.user.name }}
+                                                {{ user?.name }}
 
                                                 <svg
                                                     class="-me-0.5 ms-2 h-4 w-4"
@@ -95,14 +133,14 @@ const isEmployer = computed(() => user.value?.role === 'employer' || roles.value
                                 <DropdownLink
                                             :href="route('profile.edit')"
                                         >
-                                            Profile
+                                            {{ isIndonesian ? 'Profil' : 'Profile' }}
                                         </DropdownLink>
                                         <DropdownLink
                                             :href="route('logout')"
                                             method="post"
                                             as="button"
                                         >
-                                            Log Out
+                                            {{ isIndonesian ? 'Keluar' : 'Log Out' }}
                                         </DropdownLink>
                                     </template>
                                 </Dropdown>
@@ -165,7 +203,7 @@ const isEmployer = computed(() => user.value?.role === 'employer' || roles.value
                             :href="route('dashboard')"
                             :active="route().current('dashboard')"
                         >
-                            Dashboard
+                            {{ isIndonesian ? 'Dashboard' : 'Dashboard' }}
                         </ResponsiveNavLink>
                         <ResponsiveNavLink
                             :href="route('jobs.index')"
@@ -174,15 +212,31 @@ const isEmployer = computed(() => user.value?.role === 'employer' || roles.value
                                 route().current('jobs.show')
                             "
                         >
-                            Daftar Job
+                            {{ isIndonesian ? 'Daftar Job' : 'Jobs' }}
                         </ResponsiveNavLink>
                         <ResponsiveNavLink
                             v-if="isEmployer"
                             :href="route('jobs.create')"
                             :active="route().current('jobs.create')"
                         >
-                            Post Job
+                            {{ isIndonesian ? 'Post Job' : 'Post a Job' }}
                         </ResponsiveNavLink>
+                        <div class="flex items-center gap-3 px-4 pt-3">
+                            <button
+                                type="button"
+                                class="inline-flex items-center rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:border-indigo-400 hover:text-indigo-600 dark:border-white/20 dark:text-slate-200 dark:hover:border-indigo-300 dark:hover:text-indigo-200"
+                                @click="toggleLocale"
+                            >
+                                {{ languageLabel }}
+                            </button>
+                            <button
+                                type="button"
+                                class="inline-flex items-center rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:border-indigo-400 hover:text-indigo-600 dark:border-white/20 dark:text-slate-200 dark:hover:border-indigo-300 dark:hover:text-indigo-200"
+                                @click="toggleTheme"
+                            >
+                                {{ themeLabel }}
+                            </button>
+                        </div>
                     </div>
 
                     <!-- Responsive Settings Options -->
@@ -202,14 +256,14 @@ const isEmployer = computed(() => user.value?.role === 'employer' || roles.value
 
                         <div class="mt-3 space-y-1">
                             <ResponsiveNavLink :href="route('profile.edit')">
-                                Profile
+                                {{ isIndonesian ? 'Profil' : 'Profile' }}
                             </ResponsiveNavLink>
                             <ResponsiveNavLink
                                 :href="route('logout')"
                                 method="post"
                                 as="button"
                             >
-                                Log Out
+                                {{ isIndonesian ? 'Keluar' : 'Log Out' }}
                             </ResponsiveNavLink>
                         </div>
                     </div>
@@ -218,7 +272,7 @@ const isEmployer = computed(() => user.value?.role === 'employer' || roles.value
 
             <!-- Page Heading -->
             <header
-                class="bg-white shadow"
+                class="bg-white shadow transition-colors duration-200 dark:bg-slate-900 dark:text-slate-100 dark:shadow-none"
                 v-if="$slots.header"
             >
                 <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
@@ -227,7 +281,7 @@ const isEmployer = computed(() => user.value?.role === 'employer' || roles.value
             </header>
 
             <!-- Page Content -->
-            <main>
+            <main class="bg-gray-50 transition-colors duration-200 dark:bg-slate-950">
                 <slot />
             </main>
         </div>
