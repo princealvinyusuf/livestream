@@ -243,5 +243,4 @@ const languageLabel = computed(() => (locale.value === 'id' ? 'ID' : 'EN'));
                 <slot />
             </main>
         </div>
-    </div>
 </template>
